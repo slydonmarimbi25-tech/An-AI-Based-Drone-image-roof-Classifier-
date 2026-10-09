@@ -1,0 +1,2 @@
+weights/clip/ViT-B-32.pt filter=lfs diff=lfs merge=lfs -text
+yolov8s-world.pt filter=lfs diff=lfs merge=lfs -text
