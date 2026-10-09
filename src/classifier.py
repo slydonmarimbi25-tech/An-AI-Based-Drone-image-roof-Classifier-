@@ -10,7 +10,7 @@ from PIL import Image
 try:
     import torch
     from transformers import CLIPModel, CLIPProcessor
-except ImportError:  # pragma: no cover
+except (ImportError, OSError, RuntimeError):  # pragma: no cover
     torch = None
     CLIPModel = None
     CLIPProcessor = None

@@ -8,7 +8,11 @@ from typing import List, Sequence
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
-from shapely.geometry import Polygon
+
+try:
+    from shapely.geometry import Polygon
+except ImportError:  # pragma: no cover
+    Polygon = None
 
 try:
     from ultralytics import YOLOWorld
