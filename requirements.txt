@@ -1,0 +1,13 @@
+ultralytics>=8.1.0
+transformers>=4.35.0
+torch
+torchvision
+geopandas
+shapely
+rasterio
+pillow
+numpy
+pandas
+matplotlib
+streamlit
+opencv-python-headless

@@ -1,0 +1,46 @@
+---
+
+# Technical Module Specifications
+
+### 1. `config/settings.py`
+- Define target categories: `["RCC", "Tiled", "Tin"]`.
+- CLIP text candidate prompts:
+  - `"RCC"`: `"a flat concrete RCC grey roof on a building"`
+  - `"Tiled"`: `"a terracotta or ceramic red or blue tiled sloped roof"`
+  - `"Tin"`: `"a corrugated galvanized metal tin sheet roof"`
+- Default detection confidence threshold: `0.005` to `0.05` (tuned for high-altitude aerial perspective).
+- Default YOLO-World target classes: `["building", "house", "rooftop", "structure"]`.
+- Output directory paths and default coordinate systems (`EPSG:4326` and `EPSG:3857`).
+
+### 2. `core/detector.py`
+- Class `RoofDetector`:
+  - Method `detect_roofs(image: Image.Image) -> Tuple[np.ndarray, List[Dict]]`: Uses `ultralytics.YOLOWorld('yolov8s-world.pt')` to extract bounding boxes.
+  - Method `segment_roofs(image: Image.Image, bboxes: np.ndarray) -> np.ndarray`: Uses `ultralytics.SAM('sam_b.pt')` to generate fine-grained pixel mask polygons for each bounding box.
+  - Fallback logic: If zero bounding boxes are detected, automatically fall back to SAM whole-image automatic segmentation.
+
+### 3. `core/classifier.py`
+- Class `RoofClassifier`:
+  - Uses Hugging Face `transformers` (`CLIPModel` and `CLIPProcessor` for `openai/clip-vit-base-patch32`).
+  - Method `classify_crop(crop_image: Image.Image) -> Dict[str, Any]`: Computes softmax probabilities against the target text prompts and returns the top predicted category (`RCC`, `Tiled`, or `Tin`) alongside the confidence score.
+
+### 4. `core/gis_engine.py`
+- Class `GISEngine`:
+  - Method `pixel_to_polygon(bbox: List[int], image_shape: Tuple[int, int]) -> Polygon`: Converts image coordinate bounding boxes/masks into standard `shapely.geometry.Polygon` shapes.
+  - Method `export_geojson(results: List[Dict], output_path: str, crs: str = "EPSG:4326") -> GeoDataFrame`: Converts list of detections + classifications + geometries into a `geopandas.GeoDataFrame` and exports a valid `.geojson` file.
+  - Add optional affine spatial transformation parameters if a GeoTIFF with geotransform matrix is supplied.
+
+### 5. `core/pipeline.py`
+- Class `RooftopAnalysisPipeline`:
+  - Orchestrates `RoofDetector`, `RoofClassifier`, and `GISEngine`.
+  - Method `run(image_path: str) -> Tuple[Image.Image, GeoDataFrame, List[Dict]]`: Processes the image end-to-end and returns the annotated visualization image, the GeoDataFrame, and raw metadata.
+
+### 6. `app.py` (Streamlit Dashboard)
+- **UI Design Requirements:**
+  - Sidebar: Image upload widget (`.jpg`, `.png`, `.tif`), detection confidence slider, zero-shot prompt editor, run execution button.
+  - Main Panel Split View:
+    - Left Column: Raw input image vs. High-resolution annotated image with colored overlay masks (Green: RCC, Orange: Tiled, Blue: Tin).
+    - Right Column: Analytical KPI summary metrics (Total Roofs, Count per Category, Average Model Confidence) and an interactive, clean data table listing each detected roof ID, classification label, confidence, and pixel bounding coordinates.
+  - Bottom Section: Download buttons for `.geojson` spatial vector output and `.csv` analytical report.
+
+### 7. `requirements.txt`
+Ensure the following dependencies are explicitly declared with safe versions:
