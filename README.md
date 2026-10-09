@@ -1,5 +1,7 @@
 # AI Rooftop Classification for Drone Imagery
 
+A computer-vision pipeline that processes high-resolution drone imagery to detect buildings and classify rooftops into categories such as RCC, tiled, and tin.
+
 ## Executive Overview
 This repository implements an AI-assisted rooftop classification system for processing drone imagery and identifying roof construction types such as RCC, Tiled, and Tin. The solution combines zero-shot object detection, image-based classification, and geospatial export to support inspection, planning, and visualization workflows.
 
